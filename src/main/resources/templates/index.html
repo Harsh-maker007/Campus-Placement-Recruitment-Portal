@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Placement & Recruitment Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background: #f4f6f9; color: #333; }
+        h1 { color: #2c3e50; text-align: center; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; min-width: 320px; }
+        input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>🎓 Campus Placement & Recruitment Portal</h1>
+    
+    <div class="container">
+        <!-- Student Profile Builder -->
+        <div class="card">
+            <h2>👤 Student Profile Builder</h2>
+            <form action="/add-student" method="post">
+                <input type="text" name="name" placeholder="Full Name" required>
+                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="number" step="0.01" name="gpa" placeholder="GPA (e.g., 8.5)" required>
+                <input type="text" name="skills" placeholder="Skills (e.g., Java, SQL, React)" required>
+                <button type="submit">Save Profile</button>
+            </form>
+        </div>
+
+        <!-- Recruiter Job Posting -->
+        <div class="card">
+            <h2>🏢 Recruiter Job Posting</h2>
+            <form action="/add-job" method="post">
+                <input type="text" name="companyName" placeholder="Company Name" required>
+                <input type="text" name="title" placeholder="Job Title" required>
+                <input type="number" step="0.01" name="minGpa" placeholder="Minimum GPA Required" required>
+                <input type="text" name="requiredSkills" placeholder="Required Skills" required>
+                <button type="submit">Post Job</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Registered Students Table -->
+        <div class="card">
+            <h2>📋 Registered Students</h2>
+            <table>
+                <tr><th>Name</th><th>Email</th><th>GPA</th><th>Skills</th></tr>
+                <tr th:each="student : ${students}">
+                    <td th:text="${student.NAME}"></td>
+                    <td th:text="${student.EMAIL}"></td>
+                    <td th:text="${student.GPA}"></td>
+                    <td th:text="${student.SKILLS}"></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Active Job Postings Table -->
+        <div class="card">
+            <h2>💼 Active Job Postings</h2>
+            <table>
+                <tr><th>Company</th><th>Title</th><th>Min GPA</th><th>Skills</th></tr>
+                <tr th:each="job : ${jobs}">
+                    <td th:text="${job.COMPANY_NAME}"></td>
+                    <td th:text="${job.TITLE}"></td>
+                    <td th:text="${job.MIN_GPA}"></td>
+                    <td th:text="${job.REQUIRED_SKILLS}"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
