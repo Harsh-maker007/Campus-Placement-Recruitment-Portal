@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: campus-placement-portal
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: .
+    dockerCommand: ""
+    envVars:
+      - key: PORT
+        value: 10000
