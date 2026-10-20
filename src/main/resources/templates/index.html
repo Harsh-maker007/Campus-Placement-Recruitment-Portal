@@ -2,77 +2,168 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Campus Placement & Recruitment Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campus Placement Portal</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 30px; background: #f4f6f9; color: #333; }
-        h1 { color: #2c3e50; text-align: center; }
-        .container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; min-width: 320px; }
-        input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #2980b9; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
-        th { background: #f8f9fa; }
+        :root { color-scheme: light; --ink: #1d2c2a; --muted: #687774; --line: #dce5e1; --paper: #fff; --canvas: #eef3f0; --green: #176b54; --lime: #d9ef8b; --coral: #bd5f47; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--canvas); color: var(--ink); font-family: "Segoe UI", Tahoma, sans-serif; }
+        header { background: #183c35; color: white; padding: 22px max(24px, calc((100vw - 1400px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        header h1 { margin: 0; font-size: 23px; }
+        header p { margin: 5px 0 0; color: #c4d7d0; font-size: 13px; }
+        nav { display: flex; gap: 16px; flex-wrap: wrap; }
+        nav a, .export-links a { color: inherit; font-size: 13px; font-weight: 650; text-decoration: none; }
+        nav a:hover, .export-links a:hover { text-decoration: underline; }
+        main { width: min(1400px, calc(100% - 40px)); margin: 26px auto 56px; }
+        section { margin-bottom: 22px; scroll-margin-top: 20px; }
+        .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 13px; }
+        h2 { margin: 0; font-size: 19px; }
+        .subhead { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+        .stats { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 12px; }
+        .stat, .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; }
+        .stat { min-height: 108px; padding: 17px; border-top: 3px solid var(--green); }
+        .stat span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; }
+        .stat strong { display: block; margin-top: 12px; font-size: 28px; }
+        .panel { padding: 20px; }
+        .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .three-col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        input, select, button { min-height: 40px; padding: 9px 11px; border: 1px solid #bdcbc5; border-radius: 4px; background: white; color: var(--ink); font: inherit; }
+        input:focus, select:focus { outline: 2px solid #78ad9c; outline-offset: 1px; }
+        button, .button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 9px 14px; border: 0; border-radius: 4px; background: var(--green); color: white; font-weight: 700; text-decoration: none; cursor: pointer; }
+        button:hover, .button:hover { background: #10513f; }
+        .button.secondary { border: 1px solid var(--line); background: white; color: var(--ink); }
+        form.stack { display: grid; gap: 10px; }
+        form.search { display: flex; gap: 7px; min-width: min(100%, 350px); }
+        form.search input { flex: 1; min-width: 0; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border-bottom: 1px solid var(--line); padding: 11px 9px; text-align: left; vertical-align: middle; }
+        th { color: var(--muted); background: #f6f8f7; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+        td form { display: flex; gap: 7px; min-width: 210px; }
+        td select { min-height: 34px; padding: 5px; }
+        td button { min-height: 34px; padding: 6px 9px; font-size: 12px; white-space: nowrap; }
+        .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .match-card { padding: 14px; border: 1px solid var(--line); border-left: 3px solid var(--green); border-radius: 4px; background: #f9fbfa; }
+        .match-card h3 { margin: 0 0 5px; font-size: 15px; }
+        .match-card p { margin: 4px 0 11px; color: var(--muted); font-size: 12px; }
+        .score { color: var(--green); font-size: 12px; font-weight: 750; }
+        .match-card form { margin-top: 10px; }
+        .status { color: var(--green); font-size: 12px; font-weight: 700; }
+        .exports { display: flex; align-items: center; gap: 12px; }
+        .exports span { color: var(--muted); font-size: 12px; }
+        .empty { padding: 20px 8px; color: var(--muted); text-align: center; }
+        @media (max-width: 1000px) { .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } .three-col { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) { header { align-items: flex-start; flex-direction: column; } main { width: calc(100% - 24px); margin-top: 14px; } .stats, .two-col { grid-template-columns: 1fr; } .section-head { align-items: flex-start; flex-direction: column; } .panel { padding: 14px; } nav { gap: 12px; } }
     </style>
 </head>
 <body>
-    <h1>🎓 Campus Placement & Recruitment Portal</h1>
-    
-    <div class="container">
-        <!-- Student Profile Builder -->
-        <div class="card">
-            <h2>👤 Student Profile Builder</h2>
-            <form action="/add-student" method="post">
-                <input type="text" name="name" placeholder="Full Name" required>
-                <input type="email" name="email" placeholder="Email Address" required>
-                <input type="number" step="0.01" name="gpa" placeholder="GPA (e.g., 8.5)" required>
-                <input type="text" name="skills" placeholder="Skills (e.g., Java, SQL, React)" required>
-                <button type="submit">Save Profile</button>
-            </form>
-        </div>
-
-        <!-- Recruiter Job Posting -->
-        <div class="card">
-            <h2>🏢 Recruiter Job Posting</h2>
-            <form action="/add-job" method="post">
-                <input type="text" name="companyName" placeholder="Company Name" required>
-                <input type="text" name="title" placeholder="Job Title" required>
-                <input type="number" step="0.01" name="minGpa" placeholder="Minimum GPA Required" required>
-                <input type="text" name="requiredSkills" placeholder="Required Skills" required>
-                <button type="submit">Post Job</button>
-            </form>
-        </div>
+<header>
+    <div>
+        <h1>Campus Placement Portal</h1>
+        <p>Student readiness, role matching, and application progress</p>
     </div>
-
-    <div class="container">
-        <!-- Registered Students Table -->
-        <div class="card">
-            <h2>📋 Registered Students</h2>
-            <table>
-                <tr><th>Name</th><th>Email</th><th>GPA</th><th>Skills</th></tr>
-                <tr th:each="student : ${students}">
-                    <td th:text="${student.NAME}"></td>
-                    <td th:text="${student.EMAIL}"></td>
-                    <td th:text="${student.GPA}"></td>
-                    <td th:text="${student.SKILLS}"></td>
-                </tr>
-            </table>
+    <nav aria-label="Portal sections">
+        <a href="#matches">Matches</a><a href="#directory">Directory</a><a href="#applications">Applications</a><a href="#manage">Add records</a>
+    </nav>
+</header>
+<main>
+    <section aria-labelledby="overview-title">
+        <div class="section-head"><div><h2 id="overview-title">Placement overview</h2><p class="subhead">A live snapshot of student readiness and recruiting activity.</p></div>
+            <div class="exports"><span>Export data</span><a th:href="@{/export(type='students')}">Students CSV</a><a th:href="@{/export(type='jobs')}">Roles CSV</a><a th:href="@{/export(type='applications')}">Applications CSV</a></div>
         </div>
-
-        <!-- Active Job Postings Table -->
-        <div class="card">
-            <h2>💼 Active Job Postings</h2>
-            <table>
-                <tr><th>Company</th><th>Title</th><th>Min GPA</th><th>Skills</th></tr>
-                <tr th:each="job : ${jobs}">
-                    <td th:text="${job.COMPANY_NAME}"></td>
-                    <td th:text="${job.TITLE}"></td>
-                    <td th:text="${job.MIN_GPA}"></td>
-                    <td th:text="${job.REQUIRED_SKILLS}"></td>
-                </tr>
-            </table>
+        <div class="stats">
+            <div class="stat"><span>Students</span><strong th:text="${stats.totalStudents}">0</strong></div>
+            <div class="stat"><span>Open roles</span><strong th:text="${stats.totalJobs}">0</strong></div>
+            <div class="stat"><span>Average GPA</span><strong th:text="${stats.avgGpa}">0</strong></div>
+            <div class="stat"><span>Match-ready</span><strong th:text="${stats.eligibleStudents}">0</strong></div>
+            <div class="stat"><span>Applications</span><strong th:text="${stats.totalApplications}">0</strong></div>
+            <div class="stat"><span>Offers</span><strong th:text="${stats.offers}">0</strong></div>
         </div>
-    </div>
+        <div class="panel" style="margin-top:12px;">
+            <strong>In-demand skills</strong>
+            <span th:if="${stats != null and !#strings.isEmpty(stats.topSkills)}" th:text="${stats.topSkills}"></span>
+            <span class="subhead" th:unless="${stats != null and !#strings.isEmpty(stats.topSkills)}">Job skill trends will appear when roles are added.</span>
+        </div>
+    </section>
+
+    <section id="matches" aria-labelledby="matches-title">
+        <div class="section-head"><div><h2 id="matches-title">Recommended matches</h2><p class="subhead">Scores combine GPA eligibility and required-skill overlap.</p></div></div>
+        <div class="panel" th:if="${recommendations == null or #lists.isEmpty(recommendations)}"><p class="empty">Add students and roles to generate matches.</p></div>
+        <div class="two-col" th:unless="${recommendations == null or #lists.isEmpty(recommendations)}">
+            <article class="panel" th:each="recommendation : ${recommendations}">
+                <div class="section-head"><div><h3 th:text="${recommendation.studentName}">Student</h3><p class="subhead" th:text="${recommendation.studentGpa + ' GPA · ' + recommendation.openingCount + ' recommendations'}">GPA</p></div></div>
+                <div class="match-grid" th:if="${recommendation.matches != null and !#lists.isEmpty(recommendation.matches)}">
+                    <div class="match-card" th:each="match : ${recommendation.matches}">
+                        <h3 th:text="${match.title}">Role</h3><p th:text="${match.companyName}">Company</p>
+                        <span class="score" th:text="${match.score + '% match'}">Match</span>
+                        <form th:if="${!match.applied}" th:action="@{/apply}" method="post">
+                            <input type="hidden" name="studentId" th:value="${recommendation.studentId}">
+                            <input type="hidden" name="jobId" th:value="${match.jobId}">
+                            <button type="submit">Add application</button>
+                        </form>
+                        <span class="status" th:if="${match.applied}">Already in pipeline</span>
+                    </div>
+                </div>
+                <p class="empty" th:if="${recommendation.matches == null or #lists.isEmpty(recommendation.matches)}">No relevant roles found for this profile yet.</p>
+            </article>
+        </div>
+    </section>
+
+    <section id="directory" aria-labelledby="directory-title">
+        <div class="section-head"><div><h2 id="directory-title">Student and role directory</h2><p class="subhead">Search by name, email, company, title, or skills.</p></div></div>
+        <div class="two-col">
+            <div class="panel">
+                <div class="section-head"><h2>Students</h2>
+                    <form class="search" method="get" action="/" role="search"><input name="studentSearch" th:value="${studentSearch}" placeholder="Search students" aria-label="Search students"><input type="hidden" name="jobSearch" th:value="${jobSearch}"><button type="submit">Search</button></form>
+                </div>
+                <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>GPA</th><th>Skills</th></tr></thead><tbody>
+                    <tr th:each="student : ${students}"><td th:text="${student.NAME}"></td><td th:text="${student.EMAIL}"></td><td th:text="${student.GPA}"></td><td th:text="${student.SKILLS}"></td></tr>
+                    <tr th:if="${#lists.isEmpty(students)}"><td colspan="4" class="empty">No students match this search.</td></tr>
+                </tbody></table></div>
+            </div>
+            <div class="panel">
+                <div class="section-head"><h2>Open roles</h2>
+                    <form class="search" method="get" action="/" role="search"><input name="jobSearch" th:value="${jobSearch}" placeholder="Search roles" aria-label="Search job roles"><input type="hidden" name="studentSearch" th:value="${studentSearch}"><button type="submit">Search</button></form>
+                </div>
+                <div class="table-wrap"><table><thead><tr><th>Company</th><th>Title</th><th>Min GPA</th><th>Required skills</th></tr></thead><tbody>
+                    <tr th:each="job : ${jobs}"><td th:text="${job.COMPANY_NAME}"></td><td th:text="${job.TITLE}"></td><td th:text="${job.MIN_GPA}"></td><td th:text="${job.REQUIRED_SKILLS}"></td></tr>
+                    <tr th:if="${#lists.isEmpty(jobs)}"><td colspan="4" class="empty">No roles match this search.</td></tr>
+                </tbody></table></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="applications" aria-labelledby="applications-title">
+        <div class="section-head"><div><h2 id="applications-title">Application pipeline</h2><p class="subhead">Track each candidate from application through offer or rejection.</p></div></div>
+        <div class="panel table-wrap"><table><thead><tr><th>Student</th><th>Email</th><th>Role</th><th>Company</th><th>Applied</th><th>Status</th><th>Update</th></tr></thead><tbody>
+            <tr th:each="placement : ${applications}">
+                <td th:text="${placement.STUDENT_NAME}"></td><td th:text="${placement.STUDENT_EMAIL}"></td><td th:text="${placement.TITLE}"></td><td th:text="${placement.COMPANY_NAME}"></td><td th:text="${placement.APPLIED_AT}"></td>
+                <td><span class="status" th:text="${placement.STATUS}">APPLIED</span></td>
+                <td><form th:action="@{/update-application}" method="post"><input type="hidden" name="applicationId" th:value="${placement.ID}"><select name="status" aria-label="Application status" required><option th:each="status : ${applicationStatuses}" th:value="${status}" th:text="${status}" th:selected="${status == placement.STATUS}"></option></select><button type="submit">Update</button></form></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(applications)}"><td colspan="7" class="empty">No applications yet. Start with a recommendation above.</td></tr>
+        </tbody></table></div>
+    </section>
+
+    <section id="manage" aria-labelledby="manage-title">
+        <div class="section-head"><div><h2 id="manage-title">Add a student or role</h2><p class="subhead">New records become available immediately in search and matching.</p></div></div>
+        <div class="two-col">
+            <div class="panel"><h2>Student profile</h2><form class="stack" th:action="@{/add-student}" method="post">
+                <input type="text" name="name" placeholder="Full name" maxlength="100" required>
+                <input type="email" name="email" placeholder="Email address" maxlength="100" required>
+                <input type="number" step="0.01" min="0" max="10" name="gpa" placeholder="GPA (0 to 10)" required>
+                <input type="text" name="skills" placeholder="Skills, separated by commas" maxlength="255" required>
+                <button type="submit">Save student</button>
+            </form></div>
+            <div class="panel"><h2>Recruiter role</h2><form class="stack" th:action="@{/add-job}" method="post">
+                <input type="text" name="companyName" placeholder="Company name" maxlength="100" required>
+                <input type="text" name="title" placeholder="Job title" maxlength="100" required>
+                <input type="number" step="0.01" min="0" max="10" name="minGpa" placeholder="Minimum GPA" required>
+                <input type="text" name="requiredSkills" placeholder="Required skills, separated by commas" maxlength="255" required>
+                <button type="submit">Post role</button>
+            </form></div>
+        </div>
+    </section>
+</main>
 </body>
 </html>

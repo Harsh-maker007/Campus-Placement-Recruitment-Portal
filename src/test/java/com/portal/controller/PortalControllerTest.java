@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -39,16 +41,26 @@ class PortalControllerTest {
 
     @Test
     void indexAddsStudentsAndJobsToModel() throws Exception {
-        List<Map<String, Object>> students = List.of(Map.of("name", "Ada"));
-        List<Map<String, Object>> jobs = List.of(Map.of("title", "Engineer"));
+        List<Map<String, Object>> students = List.of(
+                Map.of("name", "Ada", "email", "ada@example.com", "gpa", 8.5, "skills", "Java,SQL"),
+                Map.of("name", "Bob", "email", "bob@example.com", "gpa", 7.2, "skills", "React,HTML")
+        );
+        List<Map<String, Object>> jobs = List.of(
+                Map.of("company_name", "Acme", "title", "Java Engineer", "min_gpa", 8.0, "required_skills", "Java,SQL"),
+                Map.of("company_name", "Beta", "title", "Frontend Engineer", "min_gpa", 6.5, "required_skills", "React,HTML")
+        );
         when(portalDAO.getAllStudents()).thenReturn(students);
         when(portalDAO.getAllJobs()).thenReturn(jobs);
+        when(portalDAO.getAllApplications()).thenReturn(List.of());
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"))
                 .andExpect(model().attribute("students", students))
-                .andExpect(model().attribute("jobs", jobs));
+                .andExpect(model().attribute("jobs", jobs))
+                .andExpect(model().attributeExists("stats"))
+                .andExpect(model().attributeExists("recommendations"))
+                .andExpect(model().attribute("applications", List.of()));
 
         verify(portalDAO).getAllStudents();
         verify(portalDAO).getAllJobs();
@@ -113,5 +125,61 @@ class PortalControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(portalDAO);
+    }
+
+    @Test
+    void applyCreatesApplicationWhenStudentAndJobExist() throws Exception {
+        when(portalDAO.studentExists(4)).thenReturn(true);
+        when(portalDAO.jobExists(9)).thenReturn(true);
+        when(portalDAO.applicationExists(4, 9)).thenReturn(false);
+
+        mockMvc.perform(post("/apply").param("studentId", "4").param("jobId", "9"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/"));
+
+        verify(portalDAO).addApplication(4, 9);
+    }
+
+    @Test
+    void applyRejectsDuplicateApplication() throws Exception {
+        when(portalDAO.studentExists(4)).thenReturn(true);
+        when(portalDAO.jobExists(9)).thenReturn(true);
+        when(portalDAO.applicationExists(4, 9)).thenReturn(true);
+
+        mockMvc.perform(post("/apply").param("studentId", "4").param("jobId", "9"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void updateApplicationAcceptsOnlyKnownPipelineStages() throws Exception {
+        mockMvc.perform(post("/update-application")
+                        .param("applicationId", "3")
+                        .param("status", "interview"))
+                .andExpect(status().is3xxRedirection());
+
+        verify(portalDAO).updateApplicationStatus(3, "INTERVIEW");
+
+        mockMvc.perform(post("/update-application")
+                        .param("applicationId", "3")
+                        .param("status", "hired"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void exportReturnsCsvWithEscapedValuesAndDownloadHeader() throws Exception {
+        when(portalDAO.getAllStudents()).thenReturn(List.of(
+                Map.of("id", 1, "name", "Ada, Lovelace", "email", "ada@example.com", "gpa", 8.5, "skills", "Java")));
+
+        mockMvc.perform(get("/export").param("type", "students"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "attachment; filename=placement-students.csv"))
+                .andExpect(content().string("\"id\",\"name\",\"email\",\"gpa\",\"skills\"\r\n"
+                        + "\"1\",\"Ada, Lovelace\",\"ada@example.com\",\"8.5\",\"Java\""));
+    }
+
+    @Test
+    void exportRejectsUnknownDataType() throws Exception {
+        mockMvc.perform(get("/export").param("type", "secrets"))
+                .andExpect(status().isBadRequest());
     }
 }
